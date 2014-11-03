@@ -2,7 +2,7 @@
   "name": "metaverse/feedparser",
   "version": "0.2",
   "type": "library",
-  "license": "proprietary",
+  "license": "BSD-3-Clause",
   "description": "metaverse PHP FeedParser library",
   "keywords": ["rss", "atom", "rdf", "feed parser"],
   "authors": [
