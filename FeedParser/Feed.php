@@ -8,10 +8,14 @@
 
 namespace FeedParser;
 
+use FeedParser\Plugin\Plugin;
+use Exception;
+use SimpleXMLElement;
+
 /**
  * Class Feed
  */
-class Feed extends \FeedParser\Base
+class Feed extends Base
 {
   /**
    * @var string The language of the feed
@@ -55,9 +59,9 @@ class Feed extends \FeedParser\Base
   /**
    * Initializes and parses a feed
    *
-   * @param \SimpleXMLElement $x
+   * @param SimpleXMLElement $x
    */
-  public function __construct(\SimpleXMLElement $x)
+  public function __construct(SimpleXMLElement $x)
   {
     $this->setFeedType($this->detectFeedType($x));
 
@@ -88,7 +92,7 @@ class Feed extends \FeedParser\Base
 
     // initialize the plugins
     $p = array();
-    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name)
+    foreach (FeedParser::$plugins as $meta_key => $class_name)
     {
       $p[$meta_key] = new $class_name;
     }
@@ -100,7 +104,7 @@ class Feed extends \FeedParser\Base
       {
         if ($meta_key != $items_key)
         {
-          if (isset($p[$meta_key]) && $p[$meta_key] instanceof \FeedParser\Plugin\Plugin)
+          if (isset($p[$meta_key]) && $p[$meta_key] instanceof Plugin)
           {
             $p[$meta_key]->processMetaData($this, '', $meta_key, $meta_value);
           }
@@ -122,7 +126,7 @@ class Feed extends \FeedParser\Base
       {
         foreach ($feed->children($ns, true) as $meta_key => $meta_value)
         {
-          if (isset($p[$ns]) && $p[$ns] instanceof \FeedParser\Plugin\Plugin)
+          if (isset($p[$ns]) && $p[$ns] instanceof Plugin)
           {
             $p[$ns]->processMetaData($this, $ns, $meta_key, $meta_value);
           }
@@ -137,7 +141,7 @@ class Feed extends \FeedParser\Base
     }
 
     // apply the meta data
-    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name)
+    foreach (FeedParser::$plugins as $meta_key => $class_name)
     {
       $p[$meta_key]->applyMetaData($this);
     }
@@ -145,7 +149,7 @@ class Feed extends \FeedParser\Base
     // extract item data
     foreach ($items as $i)
     {
-      $this->addItem(new \FeedParser\Item($this->getFeedType(), $i));
+      $this->addItem(new Item($this->getFeedType(), $i));
     }
 
     unset($feed, $items, $items_key);
@@ -154,9 +158,9 @@ class Feed extends \FeedParser\Base
   /**
    * Tries to find out the type of feed and returns it
    *
-   * @param \SimpleXMLElement $x
+   * @param SimpleXMLElement $x
    */
-  public function detectFeedType(\SimpleXMLElement $x)
+  public function detectFeedType(SimpleXMLElement $x)
   {
     switch (strtolower($x->getName()))
     {
@@ -173,7 +177,7 @@ class Feed extends \FeedParser\Base
         break;
 
       default:
-        throw new \Exception('unknown feed type');
+        throw new Exception('unknown feed type');
         break;
     }
   }
@@ -181,9 +185,9 @@ class Feed extends \FeedParser\Base
   /**
    * Adds a new \FeedParser\Item to the list of items
    *
-   * @param \FeedParser\Item $item
+   * @param Item $item
    */
-  public function addItem(\FeedParser\Item $item)
+  public function addItem(Item $item)
   {
     $this->items[] = $item;
   }

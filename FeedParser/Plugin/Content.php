@@ -8,6 +8,11 @@
 
 namespace FeedParser\Plugin;
 
+use FeedParser\Base;
+use FeedParser\Feed;
+use FeedParser\Item;
+use SimpleXMLElement;
+
 /**
  * FeedParser Content Namespace Plugin
  *
@@ -18,11 +23,11 @@ namespace FeedParser\Plugin;
  *
  * @source http://www.feedforall.com/content.htm
  */
-class Content extends \FeedParser\Plugin\Plugin
+class Content extends Plugin
 {
   private $description = null;
 
-  private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
+  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
   {
     switch ((string)$meta_key)
     {
@@ -32,7 +37,7 @@ class Content extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function applyMetaData(\FeedParser\Base $feedbase)
+  public function applyMetaData(Base $feedbase)
   {
     if (isset($this->description))
     {
@@ -40,9 +45,9 @@ class Content extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
+  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Feed)
+    if ($feedbase instanceof Feed)
     {
       switch ((string)$meta_namespace)
       {
@@ -51,7 +56,7 @@ class Content extends \FeedParser\Plugin\Plugin
           break;
       }
     }
-    if ($feedbase instanceof \FeedParser\Item)
+    if ($feedbase instanceof Item)
     {
       switch ((string)$meta_namespace)
       {

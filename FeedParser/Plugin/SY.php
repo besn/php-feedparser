@@ -8,6 +8,11 @@
 
 namespace FeedParser\Plugin;
 
+use FeedParser\Base;
+use FeedParser\Feed;
+use Exception;
+use SimpleXMLElement;
+
 /**
  * FeedParser Syndication Extension Plugin
  *
@@ -15,13 +20,13 @@ namespace FeedParser\Plugin;
  *
  * @source http://www.feedforall.com/syndication.htm
  */
-class SY extends \FeedParser\Plugin\Plugin
+class SY extends Plugin
 {
   private $updatePeriod = 0;
   private $updateFrequency = 0;
   private $updateBase = null;
 
-  private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
+  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
   {
     switch ((string)$meta_key)
     {
@@ -44,7 +49,7 @@ class SY extends \FeedParser\Plugin\Plugin
             $this->updatePeriod = 31536000;
             break;
           default:
-            throw new \Exception('unknown sy.' . $meta_key . ': "' . $meta_value . '"');
+            throw new Exception('unknown sy.' . $meta_key . ': "' . $meta_value . '"');
         }
         break;
       case 'updateFrequency':
@@ -59,9 +64,9 @@ class SY extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function applyMetaData(\FeedParser\Base $feedbase)
+  public function applyMetaData(Base $feedbase)
   {
-    if ($feedbase instanceof \FeedParser\Feed)
+    if ($feedbase instanceof Feed)
     {
       if (isset($this->updatePeriod) && $this->updatePeriod > 0 && isset($this->updateFrequency) && $this->updateFrequency > 0)
       {
@@ -70,9 +75,9 @@ class SY extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
+  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Feed)
+    if ($feedbase instanceof Feed)
     {
       switch ((string)$meta_namespace)
       {

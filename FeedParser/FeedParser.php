@@ -9,6 +9,8 @@
 namespace FeedParser;
 
 // Unknown feed type
+use Exception;
+
 define('FEEDPARSER_TYPE_UNKNOWN', 0);
 // RDF
 define('FEEDPARSER_TYPE_RDF', 1);
@@ -22,7 +24,7 @@ define('FEEDPARSER_TYPE_ATOM', 3);
  *
  * @param $feed_content
  * @return array
- * @throws \Exception
+ * @throws Exception
  */
 class FeedParser
 {
@@ -45,21 +47,21 @@ class FeedParser
    * Parses a RDF, RSS or Atom feed and returns a \Feedparser\Feed object
    *
    * @param string $feed_content
-   * @return \FeedParser\Feed
-   * @throws \Exception
+   * @return Feed
+   * @throws Exception
    */
   public function parse($feed_content)
   {
     if (!isset($feed_content))
     {
-      throw new \Exception('missing feed content');
+      throw new Exception('missing feed content');
     }
 
     if (!($x = simplexml_load_string($feed_content)))
     {
-      throw new \Exception('error parsing content');
+      throw new Exception('error parsing content');
     }
 
-    return new \FeedParser\Feed($x, $this);
+    return new Feed($x, $this);
   }
 }

@@ -8,6 +8,13 @@
 
 namespace FeedParser\Plugin;
 
+use FeedParser\Base;
+use FeedParser\Feed;
+use FeedParser\Item;
+use DateTime;
+use DateTimeZone;
+use SimpleXMLElement;
+
 /**
  * FeedParser Dublin Core Plugin
  *
@@ -15,13 +22,13 @@ namespace FeedParser\Plugin;
  *
  * @source http://www.feedforall.com/dublin-core.htm
  */
-class DC extends \FeedParser\Plugin\Plugin
+class DC extends Plugin
 {
   private $creator = null;
   private $title = null;
   private $date = null;
 
-  private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
+  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
   {
     switch ((string)$meta_key)
     {
@@ -32,13 +39,13 @@ class DC extends \FeedParser\Plugin\Plugin
         $this->title = (string)$meta_value;
         break;
       case 'date': // Defines the publication date for the resource.
-        $this->date = new \DateTime((string)$meta_value);
-        $this->date->setTimezone(new \DateTimeZone('UTC'));
+        $this->date = new DateTime((string)$meta_value);
+        $this->date->setTimezone(new DateTimeZone('UTC'));
         break;
     }
   }
 
-  public function applyMetaData(\FeedParser\Base $feedbase)
+  public function applyMetaData(Base $feedbase)
   {
     if (isset($this->creator) && !isset($feedbase->author))
     {
@@ -54,9 +61,9 @@ class DC extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
+  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Feed)
+    if ($feedbase instanceof Feed)
     {
       switch ((string)$meta_namespace)
       {
@@ -65,7 +72,7 @@ class DC extends \FeedParser\Plugin\Plugin
           break;
       }
     }
-    if ($feedbase instanceof \FeedParser\Item)
+    if ($feedbase instanceof Item)
     {
       switch ((string)$meta_namespace)
       {

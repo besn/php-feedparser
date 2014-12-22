@@ -8,6 +8,10 @@
 
 namespace FeedParser\Plugin;
 
+use FeedParser\Base;
+use FeedParser\Item;
+use SimpleXMLElement;
+
 /**
  * MediaRSS Plugin
  *
@@ -15,7 +19,7 @@ namespace FeedParser\Plugin;
  *
  * @source
  */
-class Media extends \FeedParser\Plugin\Plugin
+class Media extends Plugin
 {
   private $title = null;
   private $thumbnail = null;
@@ -24,7 +28,7 @@ class Media extends \FeedParser\Plugin\Plugin
 
   private $media_attachments = array();
 
-  private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
+  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
   {
     switch ((string)$meta_key)
     {
@@ -50,7 +54,7 @@ class Media extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function applyMetaData(\FeedParser\Base $feedbase)
+  public function applyMetaData(Base $feedbase)
   {
     if (isset($this->title) && !isset($feedbase->title))
     {
@@ -74,9 +78,9 @@ class Media extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
+  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Item)
+    if ($feedbase instanceof Item)
     {
       switch ((string)$meta_namespace)
       {

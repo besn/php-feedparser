@@ -8,10 +8,13 @@
 
 namespace FeedParser;
 
+use FeedParser\Plugin\Plugin;
+use SimpleXMLElement;
+
 /**
  * Class Item
  */
-class Item extends \FeedParser\Base
+class Item extends Base
 {
   /**
    * @var string Enclosed media
@@ -37,15 +40,15 @@ class Item extends \FeedParser\Base
    * Initializes and parses a feed item
    *
    * @param int $feed_type The type of the feed (0: unknown, 1: rdf, 2: rss, 3: atom)
-   * @param \SimpleXMLElement $item The \SimpleXMLElement of the feed item
+   * @param SimpleXMLElement $item The \SimpleXMLElement of the feed item
    */
-  public function __construct($feed_type, \SimpleXMLElement $item)
+  public function __construct($feed_type, SimpleXMLElement $item)
   {
     $this->setFeedType($feed_type);
 
     // initialize the plugins
     $p = array();
-    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name)
+    foreach (FeedParser::$plugins as $meta_key => $class_name)
     {
       $p[$meta_key] = new $class_name;
     }
@@ -54,7 +57,7 @@ class Item extends \FeedParser\Base
     {
       foreach ($item->children() as $meta_key => $meta_value)
       {
-        if (isset($p[$meta_key]) && $p[$meta_key] instanceof \FeedParser\Plugin\Plugin)
+        if (isset($p[$meta_key]) && $p[$meta_key] instanceof Plugin)
         {
           $p[$meta_key]->processMetaData($this, '', $meta_key, $meta_value);
         }
@@ -76,7 +79,7 @@ class Item extends \FeedParser\Base
       {
         foreach ($item->children($ns, true) as $meta_key => $meta_value)
         {
-          if (isset($p[$ns]) && $p[$ns] instanceof \FeedParser\Plugin\Plugin)
+          if (isset($p[$ns]) && $p[$ns] instanceof Plugin)
           {
             $p[$ns]->processMetaData($this, $ns, $meta_key, $meta_value);
           }
@@ -91,7 +94,7 @@ class Item extends \FeedParser\Base
     }
 
     // apply the meta data
-    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name)
+    foreach (FeedParser::$plugins as $meta_key => $class_name)
     {
       $p[$meta_key]->applyMetaData($this);
     }

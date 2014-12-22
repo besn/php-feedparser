@@ -8,15 +8,19 @@
 
 namespace FeedParser\Plugin;
 
+use FeedParser\Base;
+use FeedParser\Item;
+use SimpleXMLElement;
+
 /**
  * Enclosure Plugin
  */
-class Enclosure extends \FeedParser\Plugin\Plugin
+class Enclosure extends Plugin
 {
   private $enclosure_id = null;
   private $enclosure = array();
 
-  private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
+  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
   {
     switch ((string)$meta_key)
     {
@@ -29,7 +33,7 @@ class Enclosure extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function applyMetaData(\FeedParser\Base $feedbase)
+  public function applyMetaData(Base $feedbase)
   {
     if (count($this->enclosure) > 0)
     {
@@ -37,9 +41,9 @@ class Enclosure extends \FeedParser\Plugin\Plugin
     }
   }
 
-  public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
+  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Item)
+    if ($feedbase instanceof Item)
     {
       switch ((string)$meta_key)
       {

@@ -8,14 +8,21 @@
 
 namespace FeedParser\Plugin;
 
+use FeedParser\Base;
+use FeedParser\Feed;
+use FeedParser\Item;
+use DateTime;
+use DateTimeZone;
+use SimpleXMLElement;
+
 /**
  * Core Plugin
  */
-class Core extends \FeedParser\Plugin\Plugin
+class Core extends Plugin
 {
-  public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
+  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Feed)
+    if ($feedbase instanceof Feed)
     {
       switch ((string)$meta_namespace)
       {
@@ -43,8 +50,8 @@ class Core extends \FeedParser\Plugin\Plugin
                   break;
 
                 case 'pubdate': // Defines the last publication date for the content of the feed (optional)
-                  $feedbase->time = new \DateTime((string)$meta_value);
-                  $feedbase->time->setTimezone(new \DateTimeZone('UTC'));
+                  $feedbase->time = new DateTime((string)$meta_value);
+                  $feedbase->time->setTimezone(new DateTimeZone('UTC'));
                   break;
 
                 case 'ttl': // Specifies the number of minutes the feed can stay cached before refreshing it from the source (optional)
@@ -86,8 +93,8 @@ class Core extends \FeedParser\Plugin\Plugin
                   break;
 
                 case 'updated': // Defines the last publication date for the content of the feed (optional)
-                  $feedbase->time = new \DateTime((string)$meta_value);
-                  $feedbase->time->setTimezone(new \DateTimeZone('UTC'));
+                  $feedbase->time = new DateTime((string)$meta_value);
+                  $feedbase->time->setTimezone(new DateTimeZone('UTC'));
                   break;
               }
               break;
@@ -95,7 +102,7 @@ class Core extends \FeedParser\Plugin\Plugin
           break;
       }
     }
-    if ($feedbase instanceof \FeedParser\Item)
+    if ($feedbase instanceof Item)
     {
       switch ((string)$meta_namespace)
       {
@@ -124,8 +131,8 @@ class Core extends \FeedParser\Plugin\Plugin
                   break;
 
                 case 'pubdate': // Defines the last publication date for the content of the feed (optional)
-                  $feedbase->time = new \DateTime((string)$meta_value);
-                  $feedbase->time->setTimezone(new \DateTimeZone('UTC'));
+                  $feedbase->time = new DateTime((string)$meta_value);
+                  $feedbase->time->setTimezone(new DateTimeZone('UTC'));
                   break;
 
                 case 'category':
@@ -160,8 +167,8 @@ class Core extends \FeedParser\Plugin\Plugin
                   break;
 
                 case 'updated': // Defines the last publication date for the content of the feed (optional)
-                  $feedbase->time = new \DateTime((string)$meta_value);
-                  $feedbase->time->setTimezone(new \DateTimeZone('UTC'));
+                  $feedbase->time = new DateTime((string)$meta_value);
+                  $feedbase->time->setTimezone(new DateTimeZone('UTC'));
                   break;
               }
               break;
