@@ -23,9 +23,11 @@ class SY extends \FeedParser\Plugin\Plugin
 
   private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
   {
-    switch ((string)$meta_key) {
+    switch ((string)$meta_key)
+    {
       case 'updatePeriod':
-        switch ($meta_value) {
+        switch ($meta_value)
+        {
           case 'hourly':
             $this->updatePeriod = 3600;
             break;
@@ -46,7 +48,8 @@ class SY extends \FeedParser\Plugin\Plugin
         }
         break;
       case 'updateFrequency':
-        if (is_numeric((int)$meta_value)) {
+        if (is_numeric((int)$meta_value))
+        {
           $this->updateFrequency = (int)$meta_value;
         }
         break;
@@ -58,8 +61,10 @@ class SY extends \FeedParser\Plugin\Plugin
 
   public function applyMetaData(\FeedParser\Base $feedbase)
   {
-    if ($feedbase instanceof \FeedParser\Feed) {
-      if (isset($this->updatePeriod) && $this->updatePeriod > 0 && isset($this->updateFrequency) && $this->updateFrequency > 0) {
+    if ($feedbase instanceof \FeedParser\Feed)
+    {
+      if (isset($this->updatePeriod) && $this->updatePeriod > 0 && isset($this->updateFrequency) && $this->updateFrequency > 0)
+      {
         $feedbase->setUpdateFrequency(abs($this->updateFrequency * $this->updatePeriod));
       }
     }
@@ -67,8 +72,10 @@ class SY extends \FeedParser\Plugin\Plugin
 
   public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
   {
-    if($feedbase instanceof \FeedParser\Feed) {
-      switch ((string)$meta_namespace) {
+    if ($feedbase instanceof \FeedParser\Feed)
+    {
+      switch ((string)$meta_namespace)
+      {
         case 'sy':
           $this->processData($feedbase, $meta_key, $meta_value);
           break;

@@ -23,7 +23,8 @@ class DC extends \FeedParser\Plugin\Plugin
 
   private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
   {
-    switch ((string)$meta_key) {
+    switch ((string)$meta_key)
+    {
       case 'creator': // The primary individual responsible for the content of the resource.
         $this->creator = (string)$meta_value;
         break;
@@ -39,28 +40,35 @@ class DC extends \FeedParser\Plugin\Plugin
 
   public function applyMetaData(\FeedParser\Base $feedbase)
   {
-    if (isset($this->creator) && !isset($feedbase->author)) {
+    if (isset($this->creator) && !isset($feedbase->author))
+    {
       $feedbase->author = $this->creator;
     }
-    if (isset($this->title) && !isset($feedbase->title)) {
+    if (isset($this->title) && !isset($feedbase->title))
+    {
       $feedbase->title = $this->title;
     }
-    if (isset($this->date) && !isset($feedbase->time)) {
+    if (isset($this->date) && !isset($feedbase->time))
+    {
       $feedbase->time = $this->date;
     }
   }
 
   public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
   {
-    if($feedbase instanceof \FeedParser\Feed) {
-      switch ((string)$meta_namespace) {
+    if ($feedbase instanceof \FeedParser\Feed)
+    {
+      switch ((string)$meta_namespace)
+      {
         case 'dc':
           $this->processData($feedbase, $meta_key, $meta_value);
           break;
       }
     }
-    if($feedbase instanceof \FeedParser\Item) {
-      switch ((string)$meta_namespace) {
+    if ($feedbase instanceof \FeedParser\Item)
+    {
+      switch ((string)$meta_namespace)
+      {
         case 'dc':
           $this->processData($feedbase, $meta_key, $meta_value);
           break;

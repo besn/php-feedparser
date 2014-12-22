@@ -24,7 +24,8 @@ class Content extends \FeedParser\Plugin\Plugin
 
   private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
   {
-    switch ((string)$meta_key) {
+    switch ((string)$meta_key)
+    {
       case 'encoded':
         $this->description = html_entity_decode((string)$meta_value);
         break;
@@ -33,22 +34,27 @@ class Content extends \FeedParser\Plugin\Plugin
 
   public function applyMetaData(\FeedParser\Base $feedbase)
   {
-    if (isset($this->description)) {
+    if (isset($this->description))
+    {
       $feedbase->description = $this->description;
     }
   }
 
   public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Feed) {
-      switch ((string)$meta_namespace) {
+    if ($feedbase instanceof \FeedParser\Feed)
+    {
+      switch ((string)$meta_namespace)
+      {
         case 'content':
           $this->processData($feedbase, $meta_key, $meta_value);
           break;
       }
     }
-    if ($feedbase instanceof \FeedParser\Item) {
-      switch ((string)$meta_namespace) {
+    if ($feedbase instanceof \FeedParser\Item)
+    {
+      switch ((string)$meta_namespace)
+      {
         case 'content':
           $this->processData($feedbase, $meta_key, $meta_value);
           break;

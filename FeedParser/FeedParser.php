@@ -31,8 +31,10 @@ class FeedParser
   public function __construct()
   {
     // define the plugins
-    if (is_dir(dirname(__FILE__) . '/Plugin/')) {
-      foreach (glob(dirname(__FILE__) . '/Plugin/*.php') as $plugin_file) {
+    if (is_dir(dirname(__FILE__) . '/Plugin/'))
+    {
+      foreach (glob(dirname(__FILE__) . '/Plugin/*.php') as $plugin_file)
+      {
         $plugin_class = str_replace('.php', '', basename($plugin_file));
         self::$plugins[strtolower($plugin_class)] = 'FeedParser\Plugin\\' . $plugin_class;
       }
@@ -49,10 +51,14 @@ class FeedParser
   public function parse($feed_content)
   {
     if (!isset($feed_content))
+    {
       throw new \Exception('missing feed content');
+    }
 
     if (!($x = simplexml_load_string($feed_content)))
+    {
       throw new \Exception('error parsing content');
+    }
 
     return new \FeedParser\Feed($x, $this);
   }

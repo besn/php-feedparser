@@ -35,7 +35,8 @@ class Feed extends \FeedParser\Base
    */
   public function setUpdateFrequency($updateFrequency)
   {
-    if(!is_numeric($updateFrequency) || $updateFrequency <= 0) {
+    if (!is_numeric($updateFrequency) || $updateFrequency <= 0)
+    {
       throw new Exception('invalid update frequency');
     }
     $this->updateFrequency = $updateFrequency;
@@ -64,7 +65,8 @@ class Feed extends \FeedParser\Base
     $items = null;
     $items_key = null;
 
-    switch ($this->getFeedType()) {
+    switch ($this->getFeedType())
+    {
       case FEEDPARSER_TYPE_RDF:
         $feed = $x->channel;
         $items = $x->item;
@@ -86,17 +88,24 @@ class Feed extends \FeedParser\Base
 
     // initialize the plugins
     $p = array();
-    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name) {
+    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name)
+    {
       $p[$meta_key] = new $class_name;
     }
 
     // extract feed data
-    if (count($feed->children()) > 0) {
-      foreach ($feed->children() as $meta_key => $meta_value) {
-        if ($meta_key != $items_key) {
-          if (isset($p[$meta_key]) && $p[$meta_key] instanceof \FeedParser\Plugin\Plugin) {
+    if (count($feed->children()) > 0)
+    {
+      foreach ($feed->children() as $meta_key => $meta_value)
+      {
+        if ($meta_key != $items_key)
+        {
+          if (isset($p[$meta_key]) && $p[$meta_key] instanceof \FeedParser\Plugin\Plugin)
+          {
             $p[$meta_key]->processMetaData($this, '', $meta_key, $meta_value);
-          } else {
+          }
+          else
+          {
             $p['core']->processMetaData($this, '', $meta_key, $meta_value);
           }
         }
@@ -107,12 +116,18 @@ class Feed extends \FeedParser\Base
     $namespaces = $x->getNamespaces(true);
 
     // go through the list of used namespaces
-    foreach ($namespaces as $ns => $ns_uri) {
-      if (count($feed->children($ns, true)) > 0) {
-        foreach ($feed->children($ns, true) as $meta_key => $meta_value) {
-          if (isset($p[$ns]) && $p[$ns] instanceof \FeedParser\Plugin\Plugin) {
+    foreach ($namespaces as $ns => $ns_uri)
+    {
+      if (count($feed->children($ns, true)) > 0)
+      {
+        foreach ($feed->children($ns, true) as $meta_key => $meta_value)
+        {
+          if (isset($p[$ns]) && $p[$ns] instanceof \FeedParser\Plugin\Plugin)
+          {
             $p[$ns]->processMetaData($this, $ns, $meta_key, $meta_value);
-          } else {
+          }
+          else
+          {
             $p['core']->processMetaData($this, $ns, $meta_key, $meta_value);
           }
           unset($meta_key, $meta_value);
@@ -122,12 +137,14 @@ class Feed extends \FeedParser\Base
     }
 
     // apply the meta data
-    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name) {
+    foreach (\FeedParser\FeedParser::$plugins as $meta_key => $class_name)
+    {
       $p[$meta_key]->applyMetaData($this);
     }
 
     // extract item data
-    foreach ($items as $i) {
+    foreach ($items as $i)
+    {
       $this->addItem(new \FeedParser\Item($this->getFeedType(), $i));
     }
 
@@ -141,7 +158,8 @@ class Feed extends \FeedParser\Base
    */
   public function detectFeedType(\SimpleXMLElement $x)
   {
-    switch (strtolower($x->getName())) {
+    switch (strtolower($x->getName()))
+    {
       case 'rdf':
         return FEEDPARSER_TYPE_RDF;
         break;

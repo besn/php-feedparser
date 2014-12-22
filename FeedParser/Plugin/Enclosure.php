@@ -18,7 +18,8 @@ class Enclosure extends \FeedParser\Plugin\Plugin
 
   private function processData(\FeedParser\Base $feedbase, $meta_key, \SimpleXMLElement $meta_value)
   {
-    switch ((string)$meta_key) {
+    switch ((string)$meta_key)
+    {
       case 'enclosure':
         $this->enclosure_id = sha1((string)$meta_value['url']);
         $this->enclosure['url'] = (string)$meta_value['url'];
@@ -30,15 +31,18 @@ class Enclosure extends \FeedParser\Plugin\Plugin
 
   public function applyMetaData(\FeedParser\Base $feedbase)
   {
-    if (count($this->enclosure) > 0) {
+    if (count($this->enclosure) > 0)
+    {
       $feedbase->enclosures[$this->enclosure_id] = $this->enclosure;
     }
   }
 
   public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
   {
-    if($feedbase instanceof \FeedParser\Item) {
-      switch ((string)$meta_key) {
+    if ($feedbase instanceof \FeedParser\Item)
+    {
+      switch ((string)$meta_key)
+      {
         case 'enclosure':
           $this->processData($feedbase, $meta_key, $meta_value);
           break;

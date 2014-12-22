@@ -15,12 +15,16 @@ class Core extends \FeedParser\Plugin\Plugin
 {
   public function processMetaData(\FeedParser\Base $feedbase, $meta_namespace, $meta_key, \SimpleXMLElement $meta_value)
   {
-    if ($feedbase instanceof \FeedParser\Feed) {
-      switch ((string)$meta_namespace) {
+    if ($feedbase instanceof \FeedParser\Feed)
+    {
+      switch ((string)$meta_namespace)
+      {
         case '':
-          switch ($feedbase->getFeedType()) {
+          switch ($feedbase->getFeedType())
+          {
             case FEEDPARSER_TYPE_RDF:
-              switch (strtolower((string)$meta_key)) {
+              switch (strtolower((string)$meta_key))
+              {
                 case 'title': // Defines the title of the channel (required)
                 case 'link': // Defines the hyperlink to the channel (required)
                 case 'description': // Describes the channel (required)
@@ -30,7 +34,8 @@ class Core extends \FeedParser\Plugin\Plugin
               break;
 
             case FEEDPARSER_TYPE_RSS:
-              switch (strtolower((string)$meta_key)) {
+              switch (strtolower((string)$meta_key))
+              {
                 case 'title': // Defines the title of the channel (required)
                 case 'link': // Defines the hyperlink to the channel (required)
                 case 'description': // Describes the channel (required)
@@ -43,7 +48,8 @@ class Core extends \FeedParser\Plugin\Plugin
                   break;
 
                 case 'ttl': // Specifies the number of minutes the feed can stay cached before refreshing it from the source (optional)
-                  if (is_numeric((int)$meta_value)) {
+                  if (is_numeric((int)$meta_value))
+                  {
                     $feedbase->updateFrequency = abs((int)$meta_value * 60);
                   }
                   break;
@@ -55,7 +61,8 @@ class Core extends \FeedParser\Plugin\Plugin
               break;
 
             case FEEDPARSER_TYPE_ATOM:
-              switch (strtolower((string)$meta_key)) {
+              switch (strtolower((string)$meta_key))
+              {
                 case 'title': // Defines the title of the channel (required)
                   $feedbase->$meta_key = html_entity_decode((string)$meta_value);
                   break;
@@ -65,13 +72,15 @@ class Core extends \FeedParser\Plugin\Plugin
                   break;
 
                 case 'link': // Defines the hyperlink to the channel (required)
-                  if (isset($meta_value['rel']) && $meta_value['rel'] == 'alternate' && isset($meta_value['type']) && $meta_value['type'] == 'text/html' && isset($meta_value['href'])) {
+                  if (isset($meta_value['rel']) && $meta_value['rel'] == 'alternate' && isset($meta_value['type']) && $meta_value['type'] == 'text/html' && isset($meta_value['href']))
+                  {
                     $feedbase->$meta_key = (string)$meta_value['href'];
                   }
                   break;
 
                 case 'author': // Specifies the author of the item (optional)
-                  if (isset($meta_value->name)) {
+                  if (isset($meta_value->name))
+                  {
                     $feedbase->$meta_key = (string)$meta_value->name;
                   }
                   break;
@@ -86,12 +95,16 @@ class Core extends \FeedParser\Plugin\Plugin
           break;
       }
     }
-    if ($feedbase instanceof \FeedParser\Item) {
-      switch ((string)$meta_namespace) {
+    if ($feedbase instanceof \FeedParser\Item)
+    {
+      switch ((string)$meta_namespace)
+      {
         case '':
-          switch ($feedbase->getFeedType()) {
+          switch ($feedbase->getFeedType())
+          {
             case FEEDPARSER_TYPE_RDF:
-              switch (strtolower((string)$meta_key)) {
+              switch (strtolower((string)$meta_key))
+              {
                 case 'title': // Defines the title of the item (required)
                 case 'link': // Defines the hyperlink to the item (required)
                 case 'description': // Describes the item (required)
@@ -101,7 +114,8 @@ class Core extends \FeedParser\Plugin\Plugin
               break;
 
             case FEEDPARSER_TYPE_RSS:
-              switch (strtolower((string)$meta_key)) {
+              switch (strtolower((string)$meta_key))
+              {
                 case 'title': // Defines the title of the item (required)
                 case 'link': // Defines the hyperlink to the item (required)
                 case 'description': // Describes the item (required)
@@ -121,7 +135,8 @@ class Core extends \FeedParser\Plugin\Plugin
               break;
 
             case FEEDPARSER_TYPE_ATOM:
-              switch (strtolower((string)$meta_key)) {
+              switch (strtolower((string)$meta_key))
+              {
                 case 'title': // Defines the title of the item (required)
                   $feedbase->$meta_key = html_entity_decode((string)$meta_value);
                   break;
@@ -131,13 +146,15 @@ class Core extends \FeedParser\Plugin\Plugin
                   break;
 
                 case 'link': // Defines the hyperlink to the item (required)
-                  if (isset($meta_value['rel']) && $meta_value['rel'] == 'alternate' && isset($meta_value['type']) && $meta_value['type'] == 'text/html' && isset($meta_value['href'])) {
+                  if (isset($meta_value['rel']) && $meta_value['rel'] == 'alternate' && isset($meta_value['type']) && $meta_value['type'] == 'text/html' && isset($meta_value['href']))
+                  {
                     $feedbase->$meta_key = (string)$meta_value['href'];
                   }
                   break;
 
                 case 'author': // Specifies the author of the item (optional)
-                  if (isset($meta_value->name)) {
+                  if (isset($meta_value->name))
+                  {
                     $feedbase->$meta_key = (string)$meta_value->name;
                   }
                   break;
