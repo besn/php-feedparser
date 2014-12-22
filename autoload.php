@@ -6,6 +6,11 @@
  * @package metaverse/feedparser
  */
 
+/**
+ * my little autoloader function
+ *
+ * @param $className
+ */
 function __autoload($className)
 {
   $className = ltrim($className, '\\');

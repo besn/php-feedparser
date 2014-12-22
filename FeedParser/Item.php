@@ -133,7 +133,7 @@ class Item extends Base
   /**
    * Adds an item category
    *
-   * @param array $categories
+   * @param array $category
    */
   public function addCategory($category)
   {

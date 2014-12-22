@@ -36,6 +36,7 @@ class Feed extends Base
    * Sets the update frequency
    *
    * @param int $updateFrequency
+   * @throws Exception
    */
   public function setUpdateFrequency($updateFrequency)
   {
@@ -159,6 +160,8 @@ class Feed extends Base
    * Tries to find out the type of feed and returns it
    *
    * @param SimpleXMLElement $x
+   * @return int
+   * @throws Exception
    */
   public function detectFeedType(SimpleXMLElement $x)
   {
