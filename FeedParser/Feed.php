@@ -1,11 +1,5 @@
 <?php
 
-/**
- * projectname: metaverse/feedparser
- *
- * @package metaverse/feedparser
- */
-
 namespace FeedParser;
 
 use FeedParser\Plugin\Plugin;
@@ -31,6 +25,11 @@ class Feed extends Base
    * @var int the update frequency
    */
   public $updateFrequency = -1;
+
+  /**
+   * @var int the time of the last update
+   */
+  public $time = 0;
 
   /**
    * Sets the update frequency

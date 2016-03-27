@@ -1,11 +1,5 @@
 <?php
 
-/**
- * projectname: metaverse/feedparser
- *
- * @package metaverse/feedparser
- */
-
 namespace FeedParser\Plugin;
 
 use FeedParser\Base;
