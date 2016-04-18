@@ -2,6 +2,7 @@
 
 namespace FeedParser;
 
+use DateTime;
 use FeedParser\Plugin\Plugin;
 use SimpleXMLElement;
 
@@ -21,7 +22,7 @@ class Item extends Base
   public $media = array();
 
   /**
-   * @var string The time of publication of the item
+   * @var DateTime The time of publication of the item
    */
   public $time = null;
 
@@ -47,7 +48,7 @@ class Item extends Base
       $p[$meta_key] = new $class_name;
     }
 
-    if (count($item->children()) > 0)
+    if ($item->children()->count() > 0)
     {
       foreach ($item->children() as $meta_key => $meta_value)
       {
@@ -69,7 +70,7 @@ class Item extends Base
     // go through the list of used namespaces
     foreach ($namespaces as $ns => $ns_uri)
     {
-      if (count($item->children($ns, true)) > 0)
+      if ($item->children($ns, true)->count() > 0)
       {
         foreach ($item->children($ns, true) as $meta_key => $meta_value)
         {
@@ -97,7 +98,7 @@ class Item extends Base
   /**
    * Returns the time of publication of the item
    *
-   * @return string
+   * @return DateTime
    */
   public function getTime()
   {
@@ -117,7 +118,7 @@ class Item extends Base
   /**
    * Sets the time of publication of the item
    *
-   * @param string $time
+   * @param DateTime $time
    */
   public function setTime($time)
   {
