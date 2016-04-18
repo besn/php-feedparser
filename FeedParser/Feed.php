@@ -99,7 +99,7 @@ class Feed extends Base
     }
 
     // extract feed data
-    if (count($feed->children()) > 0)
+    if ($feed->children()->count() > 0)
     {
       foreach ($feed->children() as $meta_key => $meta_value)
       {
