@@ -44,8 +44,7 @@ class Core extends Plugin
                   break;
 
                 case 'pubdate': // Defines the last publication date for the content of the feed (optional)
-                  $feedbase->time = new DateTime((string)$meta_value);
-                  $feedbase->time->setTimezone(new DateTimeZone('UTC'));
+                  $feedbase->time = new DateTime((string)$meta_value, new DateTimeZone('UTC'));
                   break;
 
                 case 'ttl': // Specifies the number of minutes the feed can stay cached before refreshing it from the source (optional)
