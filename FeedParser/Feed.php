@@ -2,6 +2,7 @@
 
 namespace FeedParser;
 
+use DateTime;
 use FeedParser\Plugin\Plugin;
 use Exception;
 use SimpleXMLElement;
@@ -27,7 +28,7 @@ class Feed extends Base
   public $updateFrequency = -1;
 
   /**
-   * @var int the time of the last update
+   * @var DateTime the time of the last update
    */
   public $time = 0;
 
