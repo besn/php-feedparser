@@ -123,7 +123,7 @@ class Feed extends Base
     // go through the list of used namespaces
     foreach ($namespaces as $ns => $ns_uri)
     {
-      if (count($feed->children($ns, true)) > 0)
+      if ($feed->children($ns, true)->count() > 0)
       {
         foreach ($feed->children($ns, true) as $meta_key => $meta_value)
         {
