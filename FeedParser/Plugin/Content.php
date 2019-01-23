@@ -8,57 +8,68 @@ use FeedParser\Item;
 use SimpleXMLElement;
 
 /**
- * FeedParser Content Namespace Plugin
+ * RSS/Atom/RDF FeedParser - Content plugin
  *
- * The purpose of the Content namespace is to include the actual content of websites in an RSS feed.
+ * (c) Andreas Mery <besn@besn.at>
  *
- * It typically contains an enhanced version of the channel or item's description.
- * This is typically an HTML version of the description that is either entity encoded or CDATA escaped.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * @source http://www.feedforall.com/content.htm
+ * @package FeedParser\Plugin
  */
 class Content extends Plugin
 {
-  private $description = null;
+    /**
+     * @var string $description
+     */
+    public $description;
 
-  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
-  {
-    switch ((string)$meta_key)
-    {
-      case 'encoded':
-        $this->description = html_entity_decode((string)$meta_value);
-        break;
-    }
-  }
+    /**
+     * @param Base             $feedbase
+     * @param string           $meta_namespace
+     * @param string           $meta_key
+     * @param SimpleXMLElement $meta_value
+     */
+    public function processMetaData(
+        Base $feedbase,
+        string $meta_namespace,
+        string $meta_key,
+        SimpleXMLElement $meta_value
+    ): void {
+        if ($meta_namespace !== 'content') {
+            return;
+        }
 
-  public function applyMetaData(Base $feedbase)
-  {
-    if (isset($this->description))
-    {
-      $feedbase->description = $this->description;
+        switch (true) {
+            case ($feedbase instanceof Feed):
+            case ($feedbase instanceof Item):
+                $this->processData($feedbase, $meta_key, $meta_value);
+                break;
+        }
     }
-  }
 
-  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
-  {
-    if ($feedbase instanceof Feed)
-    {
-      switch ((string)$meta_namespace)
-      {
-        case 'content':
-          $this->processData($feedbase, $meta_key, $meta_value);
-          break;
-      }
+    /**
+     * @param Base             $feedbase
+     * @param string           $meta_key
+     * @param SimpleXMLElement $meta_value
+     */
+    protected function processData(
+        Base $feedbase,
+        string $meta_key,
+        SimpleXMLElement $meta_value
+    ): void {
+        if (strtolower($meta_key) === 'encoded') {
+            $this->description = (string)$meta_value;
+        }
     }
-    if ($feedbase instanceof Item)
+
+    /**
+     * @param Base $feedbase
+     */
+    public function applyMetaData(Base $feedbase): void
     {
-      switch ((string)$meta_namespace)
-      {
-        case 'content':
-          $this->processData($feedbase, $meta_key, $meta_value);
-          break;
-      }
+        if ($this->description !== null && $feedbase->description === null) {
+            $feedbase->description = $this->description;
+        }
     }
-    unset($meta_namespace, $meta_key, $meta_value);
-  }
 }

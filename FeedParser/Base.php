@@ -2,133 +2,335 @@
 
 namespace FeedParser;
 
+use FeedParser\Plugin\Plugin;
+use SimpleXMLElement;
+
 /**
- * Class Base
+ * RSS/Atom/RDF FeedParser - Base class
+ *
+ * (c) Andreas Mery <besn@besn.at>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package FeedParser
  */
 class Base
 {
-  /**
-   * @var int The type of the feed (0: unknown, 1: rdf, 2: rss, 3: atom)
-   */
-  private $feed_type = null;
+    /**
+     * @var SimpleXMLElement $rawXml
+     */
+    public $rawXml;
 
-  /**
-   * @var string The title of the feed or item
-   */
-  public $title = null;
+    /**
+     * @var string $feedType
+     */
+    public $feedType;
 
-  /**
-   * @var string The link to the feed or item
-   */
-  public $link = null;
+    /**
+     * @var string $title
+     */
+    public $title;
 
-  /**
-   * @var string The description of the feed or item
-   */
-  public $description = null;
+    /**
+     * @var string $language
+     */
+    public $language;
 
-  /**
-   * @var string The author of the feed or item
-   */
-  public $author = null;
+    /**
+     * @var string $link
+     */
+    public $link;
 
-  /**
-   * Returns the title of the feed or item
-   *
-   * @return string
-   */
-  public function getTitle()
-  {
-    return $this->title;
-  }
+    /**
+     * @var array $guid
+     */
+    public $guid;
 
-  /**
-   * Returns the author of the feed or item
-   *
-   * @return string
-   */
-  public function getAuthor()
-  {
-    return $this->author;
-  }
+    /**
+     * @var string|array $description
+     */
+    public $description;
 
-  /**
-   * Returns the description of the feed or item
-   *
-   * @return string
-   */
-  public function getDescription()
-  {
-    return $this->description;
-  }
+    /**
+     * @var \DateTime $pubDate
+     */
+    public $pubDate;
 
-  /**
-   * Returns the type of the feed (0: unknown, 1: rdf, 2: rss, 3: atom)
-   *
-   * @return int
-   */
-  public function getFeedType()
-  {
-    return $this->feed_type;
-  }
+    /**
+     * @var \DateTime $updated
+     */
+    public $updated;
 
-  /**
-   * Returns the link to the feed or item
-   *
-   * @return string
-   */
-  public function getLink()
-  {
-    return $this->link;
-  }
+    /**
+     * @var string $author
+     */
+    public $author;
 
-  /**
-   * Sets the author of the feed or item
-   *
-   * @param string $author
-   */
-  public function setAuthor($author)
-  {
-    $this->author = $author;
-  }
+    /**
+     * @var array $categories
+     */
+    public $categories = [];
 
-  /**
-   * Sets the description of the feed or item
-   *
-   * @param string $description
-   */
-  public function setDescription($description)
-  {
-    $this->description = $description;
-  }
+    /**
+     * @var array $categories
+     */
+    public $plugins = [];
 
-  /**
-   * Sets the type of the feed (0: unknown, 1: rdf, 2: rss, 3: atom)
-   *
-   * @param int $feed_type
-   */
-  public function setFeedType($feed_type)
-  {
-    $this->feed_type = $feed_type;
-  }
+    /**
+     * initialize the plugins
+     */
+    public function loadPlugins(): void
+    {
+        foreach (FeedParser::$plugins as $plugin => $class_name) {
+            $this->plugins[$plugin] = new $class_name();
+        }
+    }
 
-  /**
-   * Sets the link to the feed or item
-   *
-   * @param string $link
-   */
-  public function setLink($link)
-  {
-    $this->link = $link;
-  }
+    /**
+     * @param SimpleXMLElement $xml
+     */
+    public function process(SimpleXMLElement $xml): void
+    {
+        /**
+         * process the children
+         */
+        if ($xml->children()->count() > 0) {
+            foreach ($xml->children() as $element => $elementValue) {
+                if (isset(FeedParser::$plugins[$element])
+                    && FeedParser::$plugins[$element] instanceof Plugin
+                ) {
+                    $this->plugins[$element]->processMetaData(
+                        $this,
+                        '',
+                        $element,
+                        $elementValue
+                    );
+                } else {
+                    $this->plugins['core']->processMetaData(
+                        $this,
+                        '',
+                        $element,
+                        $elementValue
+                    );
+                }
+                unset($element, $elementValue);
+            }
+        }
 
-  /**
-   * Sets the title of the feed or item
-   *
-   * @param string $title
-   */
-  public function setTitle($title)
-  {
-    $this->title = $title;
-  }
+        /**
+         * process the namespaces
+         */
+        foreach ($xml->getNamespaces(true) as $namespace => $namespaceUri) {
+            if ($xml->children($namespace, true)->count() > 0) {
+                foreach (
+                    $xml->children($namespace, true) as $element =>
+                    $elementValue
+                ) {
+                    if (isset($this->plugins[$namespace])
+                        && $this->plugins[$namespace] instanceof Plugin
+                    ) {
+                        $this->plugins[$namespace]->processMetaData(
+                            $this,
+                            $namespace,
+                            $element,
+                            $elementValue
+                        );
+                    } else {
+                        $this->plugins['core']->processMetaData(
+                            $this,
+                            $namespace,
+                            $element,
+                            $elementValue
+                        );
+                    }
+                    unset($element, $elementValue);
+                }
+            }
+            unset($namespace, $namespaceUri);
+        }
+
+        /**
+         * apply the meta data
+         */
+        foreach ($this->plugins as $pluginName => $plugin) {
+            $plugin->applyMetaData($this);
+        }
+    }
+
+    /**
+     * @return SimpleXMLElement
+     */
+    public function getRawXml(): SimpleXMLElement
+    {
+        return $this->rawXml;
+    }
+
+    /**
+     * @param SimpleXMLElement $rawXml
+     */
+    public function setRawXml(SimpleXMLElement $rawXml): void
+    {
+        $this->rawXml = $rawXml;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFeedType(): string
+    {
+        return $this->feedType;
+    }
+
+    /**
+     * @param string $feedType
+     */
+    public function setFeedType(string $feedType): void
+    {
+        $this->feedType = $feedType;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param string $title
+     */
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLanguage(): string
+    {
+        return $this->language;
+    }
+
+    /**
+     * @param string $language
+     */
+    public function setLanguage(string $language): void
+    {
+        $this->language = $language;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLink(): string
+    {
+        return $this->link;
+    }
+
+    /**
+     * @param string $link
+     */
+    public function setLink(string $link): void
+    {
+        $this->link = $link;
+    }
+
+    /**
+     * @return array
+     */
+    public function getGuid(): array
+    {
+        return $this->guid;
+    }
+
+    /**
+     * @param array $guid
+     */
+    public function setGuid(array $guid): void
+    {
+        $this->guid = $guid;
+    }
+
+    /**
+     * @return array|string
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param array|string $description
+     */
+    public function setDescription($description): void
+    {
+        $this->description = $description;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getPubDate(): \DateTime
+    {
+        return $this->pubDate;
+    }
+
+    /**
+     * @param \DateTime $pubDate
+     */
+    public function setPubDate(\DateTime $pubDate): void
+    {
+        $this->pubDate = $pubDate;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getUpdated(): \DateTime
+    {
+        return $this->updated;
+    }
+
+    /**
+     * @param \DateTime $updated
+     */
+    public function setUpdated(\DateTime $updated): void
+    {
+        $this->updated = $updated;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAuthor(): string
+    {
+        return $this->author;
+    }
+
+    /**
+     * @param string $author
+     */
+    public function setAuthor(string $author): void
+    {
+        $this->author = $author;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCategories(): array
+    {
+        return $this->categories;
+    }
+
+    /**
+     * @param array $categories
+     */
+    public function setCategories(array $categories): void
+    {
+        $this->categories = $categories;
+    }
 }

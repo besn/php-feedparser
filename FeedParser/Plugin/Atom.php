@@ -3,10 +3,12 @@
 namespace FeedParser\Plugin;
 
 use FeedParser\Base;
+use FeedParser\Feed;
+use FeedParser\Item;
 use SimpleXMLElement;
 
 /**
- * RSS/Atom/RDF FeedParser - Plugin base
+ * RSS/Atom/RDF FeedParser - Atom plugin
  *
  * (c) Andreas Mery <besn@besn.at>
  *
@@ -15,7 +17,7 @@ use SimpleXMLElement;
  *
  * @package FeedParser\Plugin
  */
-abstract class Plugin
+class Atom extends Core
 {
     /**
      * @param Base             $feedbase
@@ -23,26 +25,25 @@ abstract class Plugin
      * @param string           $meta_key
      * @param SimpleXMLElement $meta_value
      */
-    abstract public function processMetaData(
+    public function processMetaData(
         Base $feedbase,
         string $meta_namespace,
         string $meta_key,
         SimpleXMLElement $meta_value
-    ): void;
+    ): void {
+        if ($meta_namespace !== 'atom') {
+            return;
+        }
 
-    /**
-     * @param Base $feedbase
-     */
-    abstract public function applyMetaData(Base $feedbase): void;
-
-    /**
-     * @param Base             $feedbase
-     * @param string           $meta_key
-     * @param SimpleXMLElement $meta_value
-     */
-    abstract protected function processData(
-        Base $feedbase,
-        string $meta_key,
-        SimpleXMLElement $meta_value
-    ): void;
+        switch (true) {
+            case ($feedbase instanceof Feed):
+            case ($feedbase instanceof Item):
+                $this->processAtomData(
+                    $feedbase,
+                    strtolower($meta_key),
+                    $meta_value
+                );
+                break;
+        }
+    }
 }
