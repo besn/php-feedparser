@@ -2,136 +2,73 @@
 
 namespace FeedParser;
 
-use DateTime;
-use FeedParser\Plugin\Plugin;
 use SimpleXMLElement;
 
 /**
- * Class Item
+ * RSS/Atom/RDF FeedParser - Feed item class
+ *
+ * (c) Andreas Mery <besn@besn.at>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package FeedParser
  */
 class Item extends Base
 {
-  /**
-   * @var string Enclosed media
-   */
-  public $enclosures = array();
+    /**
+     * @var array $enclosures
+     */
+    public $enclosures = [];
 
-  /**
-   * @var string Enclosed media (MediaRSS)
-   */
-  public $media = array();
+    /**
+     * @var array $media
+     */
+    public $media = [];
 
-  /**
-   * @var DateTime The time of publication of the item
-   */
-  public $time = null;
-
-  /**
-   * @var array The categories (tags) of the item
-   */
-  public $categories = array();
-
-  /**
-   * Initializes and parses a feed item
-   *
-   * @param int $feed_type The type of the feed (0: unknown, 1: rdf, 2: rss, 3: atom)
-   * @param SimpleXMLElement $item The \SimpleXMLElement of the feed item
-   */
-  public function __construct($feed_type, SimpleXMLElement $item)
-  {
-    $this->setFeedType($feed_type);
-
-    // initialize the plugins
-    $p = array();
-    foreach (FeedParser::$plugins as $meta_key => $class_name)
+    /**
+     * Initializes and parses a feed item
+     *
+     * @param string           $feed_type The type of the feed
+     * @param SimpleXMLElement $itemXml   The \SimpleXMLElement of the feed item
+     */
+    public function __construct(string $feed_type, SimpleXMLElement $itemXml)
     {
-      $p[$meta_key] = new $class_name;
+        $this->loadPlugins();
+        $this->setRawXml($itemXml);
+        $this->setFeedType($feed_type);
+        $this->process($itemXml);
     }
 
-    if ($item->children()->count() > 0)
+    /**
+     * @return array
+     */
+    public function getEnclosures(): array
     {
-      foreach ($item->children() as $meta_key => $meta_value)
-      {
-        if (isset($p[$meta_key]) && $p[$meta_key] instanceof Plugin)
-        {
-          $p[$meta_key]->processMetaData($this, '', $meta_key, $meta_value);
-        }
-        else
-        {
-          $p['core']->processMetaData($this, '', $meta_key, $meta_value);
-        }
-        unset($meta_key, $meta_value);
-      }
+        return $this->enclosures;
     }
 
-    // get the namespaces used in the item
-    $namespaces = $item->getNamespaces(true);
-
-    // go through the list of used namespaces
-    foreach ($namespaces as $ns => $ns_uri)
+    /**
+     * @param array $enclosures
+     */
+    public function setEnclosures(array $enclosures): void
     {
-      if ($item->children($ns, true)->count() > 0)
-      {
-        foreach ($item->children($ns, true) as $meta_key => $meta_value)
-        {
-          if (isset($p[$ns]) && $p[$ns] instanceof Plugin)
-          {
-            $p[$ns]->processMetaData($this, $ns, $meta_key, $meta_value);
-          }
-          else
-          {
-            $p['core']->processMetaData($this, $ns, $meta_key, $meta_value);
-          }
-          unset($meta_key, $meta_value);
-        }
-      }
-      unset($ns, $ns_uri);
+        $this->enclosures = $enclosures;
     }
 
-    // apply the meta data
-    foreach (FeedParser::$plugins as $meta_key => $class_name)
+    /**
+     * @return array
+     */
+    public function getMedia(): array
     {
-      $p[$meta_key]->applyMetaData($this);
+        return $this->media;
     }
-  }
 
-  /**
-   * Returns the time of publication of the item
-   *
-   * @return DateTime
-   */
-  public function getTime()
-  {
-    return $this->time;
-  }
-
-  /**
-   * Returns the ategories (tags) of the item
-   *
-   * @return array
-   */
-  public function getCategories()
-  {
-    return $this->categories;
-  }
-
-  /**
-   * Sets the time of publication of the item
-   *
-   * @param DateTime $time
-   */
-  public function setTime($time)
-  {
-    $this->time = $time;
-  }
-
-  /**
-   * Adds an item category
-   *
-   * @param array $category
-   */
-  public function addCategory($category)
-  {
-    $this->categories[] = $category;
-  }
+    /**
+     * @param array $media
+     */
+    public function setMedia(array $media): void
+    {
+        $this->media = $media;
+    }
 }

@@ -2,216 +2,176 @@
 
 namespace FeedParser;
 
-use DateTime;
-use FeedParser\Plugin\Plugin;
 use Exception;
+use LogicException;
 use SimpleXMLElement;
 
 /**
- * Class Feed
+ * RSS/Atom/RDF FeedParser - Feed class
+ *
+ * (c) Andreas Mery <besn@besn.at>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package FeedParser
  */
 class Feed extends Base
 {
-  /**
-   * @var string The language of the feed
-   */
-  public $language = null;
+    /**
+     * @var string $generator
+     */
+    public $generator;
 
-  /**
-   * @var array the feed items
-   */
-  public $items = array();
+    /**
+     * @var array $items
+     */
+    public $items = [];
 
-  /**
-   * @var int the update frequency
-   */
-  public $updateFrequency = -1;
+    /**
+     * @var int $ttl
+     */
+    public $ttl = -1;
 
-  /**
-   * @var DateTime the time of the last update
-   */
-  public $time = 0;
-
-  /**
-   * Sets the update frequency
-   *
-   * @param int $updateFrequency
-   * @throws Exception
-   */
-  public function setUpdateFrequency($updateFrequency)
-  {
-    if (!is_numeric($updateFrequency) || $updateFrequency <= 0)
+    /**
+     * @param SimpleXMLElement $feedXml
+     */
+    public function __construct(SimpleXMLElement $feedXml)
     {
-      throw new Exception('invalid update frequency');
-    }
-    $this->updateFrequency = $updateFrequency;
-  }
-
-  /**
-   * Returns the update frequency
-   *
-   * @return int
-   */
-  public function getUpdateFrequency()
-  {
-    return $this->updateFrequency;
-  }
-
-  /**
-   * Initializes and parses a feed
-   *
-   * @param SimpleXMLElement $x
-   */
-  public function __construct(SimpleXMLElement $x)
-  {
-    $this->setFeedType($this->detectFeedType($x));
-
-    $feed = null;
-    $items = null;
-    $items_key = null;
-
-    switch ($this->getFeedType())
-    {
-      case FEEDPARSER_TYPE_RDF:
-        $feed = $x->channel;
-        $items = $x->item;
-        $items_key = 'item';
-        break;
-
-      case FEEDPARSER_TYPE_RSS:
-        $feed = $x->channel;
-        $items = $x->channel->item;
-        $items_key = 'item';
-        break;
-
-      case FEEDPARSER_TYPE_ATOM:
-        $feed = $x;
-        $items = $x->entry;
-        $items_key = 'entry';
-        break;
+        $this->loadPlugins();
+        $this->process($feedXml);
     }
 
-    // initialize the plugins
-    $p = array();
-    foreach (FeedParser::$plugins as $meta_key => $class_name)
+    /**
+     * @param SimpleXMLElement $feedXml
+     */
+    public function process(SimpleXMLElement $feedXml): void
     {
-      $p[$meta_key] = new $class_name;
-    }
+        $this->setRawXml($feedXml);
+        $this->setFeedType($this->detectFeedType($feedXml));
 
-    // extract feed data
-    if ($feed->children()->count() > 0)
-    {
-      foreach ($feed->children() as $meta_key => $meta_value)
-      {
-        if ($meta_key != $items_key)
-        {
-          if (isset($p[$meta_key]) && $p[$meta_key] instanceof Plugin)
-          {
-            $p[$meta_key]->processMetaData($this, '', $meta_key, $meta_value);
-          }
-          else
-          {
-            $p['core']->processMetaData($this, '', $meta_key, $meta_value);
-          }
+        $channel = null;
+        $items = null;
+
+        switch ($this->getFeedType()) {
+            case FeedParser::FEEDPARSER_TYPE_RDF:
+                /** @noinspection PhpUndefinedFieldInspection */
+                $channel = $feedXml->channel;
+                /** @noinspection PhpUndefinedFieldInspection */
+                $items = $feedXml->item;
+                break;
+
+            case FeedParser::FEEDPARSER_TYPE_RSS:
+                /** @noinspection PhpUndefinedFieldInspection */
+                $channel = $feedXml->channel;
+                /** @noinspection PhpUndefinedFieldInspection */
+                $items = $feedXml->channel->item;
+                break;
+
+            case FeedParser::FEEDPARSER_TYPE_ATOM:
+                $channel = $feedXml;
+                /** @noinspection PhpUndefinedFieldInspection */
+                $items = $feedXml->entry;
+                break;
+
+            default:
+                throw new \RuntimeException('Unknown feed type');
+                break;
         }
-      }
-    }
 
-    // get the namespaces used in the feed
-    $namespaces = $x->getNamespaces(true);
+        /**
+         * process the channel
+         */
+        parent::process($channel);
 
-    // go through the list of used namespaces
-    foreach ($namespaces as $ns => $ns_uri)
-    {
-      if ($feed->children($ns, true)->count() > 0)
-      {
-        foreach ($feed->children($ns, true) as $meta_key => $meta_value)
-        {
-          if (isset($p[$ns]) && $p[$ns] instanceof Plugin)
-          {
-            $p[$ns]->processMetaData($this, $ns, $meta_key, $meta_value);
-          }
-          else
-          {
-            $p['core']->processMetaData($this, $ns, $meta_key, $meta_value);
-          }
-          unset($meta_key, $meta_value);
+        /**
+         * process the feed items
+         */
+        foreach ($items as $item) {
+            $this->items[] = new Item($this->getFeedType(), $item);
         }
-      }
-      unset($ns, $ns_uri);
     }
 
-    // apply the meta data
-    foreach (FeedParser::$plugins as $meta_key => $class_name)
+    /**
+     * Tries to find out the type of feed and returns it
+     *
+     * @param SimpleXMLElement $x
+     *
+     * @return string
+     * @throws LogicException
+     */
+    public function detectFeedType(SimpleXMLElement $x): string
     {
-      $p[$meta_key]->applyMetaData($this);
+        switch (strtolower($x->getName())) {
+            case 'rdf':
+                return FeedParser::FEEDPARSER_TYPE_RDF;
+                break;
+
+            case 'rss':
+                return FeedParser::FEEDPARSER_TYPE_RSS;
+                break;
+
+            case 'feed':
+                return FeedParser::FEEDPARSER_TYPE_ATOM;
+                break;
+
+            default:
+                throw new LogicException('Unknown feed type');
+                break;
+        }
     }
 
-    // extract item data
-    foreach ($items as $i)
+    /**
+     * @return string
+     */
+    public function getGenerator(): string
     {
-      $this->addItem(new Item($this->getFeedType(), $i));
+        return $this->generator;
     }
 
-    unset($feed, $items, $items_key);
-  }
-
-  /**
-   * Tries to find out the type of feed and returns it
-   *
-   * @param SimpleXMLElement $x
-   * @return int
-   * @throws Exception
-   */
-  public function detectFeedType(SimpleXMLElement $x)
-  {
-    switch (strtolower($x->getName()))
+    /**
+     * @param string $generator
+     */
+    public function setGenerator(string $generator): void
     {
-      case 'rdf':
-        return FEEDPARSER_TYPE_RDF;
-        break;
-
-      case 'rss':
-        return FEEDPARSER_TYPE_RSS;
-        break;
-
-      case 'feed':
-        return FEEDPARSER_TYPE_ATOM;
-        break;
-
-      default:
-        throw new Exception('unknown feed type');
-        break;
+        $this->generator = $generator;
     }
-  }
 
-  /**
-   * Adds a new \FeedParser\Item to the list of items
-   *
-   * @param Item $item
-   */
-  public function addItem(Item $item)
-  {
-    $this->items[] = $item;
-  }
+    /**
+     * @return int
+     */
+    public function getTtl(): int
+    {
+        return $this->ttl;
+    }
 
-  /**
-   * Returns the feed items
-   *
-   * @return array
-   */
-  public function getItems()
-  {
-    return $this->items;
-  }
+    /**
+     * @param int $ttl
+     *
+     * @throws Exception
+     */
+    public function setTtl(int $ttl): void
+    {
+        if ( ! is_numeric($ttl) || $ttl <= 0) {
+            throw new \LogicException('invalid time to live');
+        }
 
-  /**
-   * Returns the language of the feed
-   *
-   * @return string
-   */
-  public function getLanguage()
-  {
-    return $this->language;
-  }
+        $this->ttl = $ttl;
+    }
+
+    /**
+     * @return array
+     */
+    public function getItems(): array
+    {
+        return $this->items;
+    }
+
+    /**
+     * @param array $items
+     */
+    public function setItems(array $items): void
+    {
+        $this->items = $items;
+    }
 }

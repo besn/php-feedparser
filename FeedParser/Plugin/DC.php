@@ -2,79 +2,126 @@
 
 namespace FeedParser\Plugin;
 
+use DateTime;
+use DateTimeZone;
 use FeedParser\Base;
 use FeedParser\Feed;
 use FeedParser\Item;
-use DateTime;
-use DateTimeZone;
 use SimpleXMLElement;
 
 /**
- * FeedParser Dublin Core Plugin
+ * RSS/Atom/RDF FeedParser - DC plugin
  *
- * The Dublin Core namespace allows for meta data to be associated with content.
+ * (c) Andreas Mery <besn@besn.at>
  *
- * @source http://www.feedforall.com/dublin-core.htm
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * @package FeedParser\Plugin
  */
 class DC extends Plugin
 {
-  private $creator = null;
-  private $title = null;
-  private $date = null;
+    /**
+     * @var string $author
+     */
+    public $author;
 
-  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
-  {
-    switch ((string)$meta_key)
-    {
-      case 'creator': // The primary individual responsible for the content of the resource.
-        $this->creator = (string)$meta_value;
-        break;
-      case 'title': // Title by which the resource is known.
-        $this->title = (string)$meta_value;
-        break;
-      case 'date': // Defines the publication date for the resource.
-        $this->date = new DateTime((string)$meta_value);
-        $this->date->setTimezone(new DateTimeZone('UTC'));
-        break;
-    }
-  }
+    /**
+     * @var string $title
+     */
+    public $title;
 
-  public function applyMetaData(Base $feedbase)
-  {
-    if (isset($this->creator) && !isset($feedbase->author))
-    {
-      $feedbase->author = $this->creator;
-    }
-    if (isset($this->title) && !isset($feedbase->title))
-    {
-      $feedbase->title = $this->title;
-    }
-    if (isset($this->date) && !isset($feedbase->time))
-    {
-      $feedbase->time = $this->date;
-    }
-  }
+    /**
+     * @var string $pubDate
+     */
+    public $pubDate;
 
-  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
-  {
-    if ($feedbase instanceof Feed)
-    {
-      switch ((string)$meta_namespace)
-      {
-        case 'dc':
-          $this->processData($feedbase, $meta_key, $meta_value);
-          break;
-      }
+    /**
+     * @param Base             $feedbase
+     * @param                  $meta_namespace
+     * @param string           $meta_key
+     * @param SimpleXMLElement $meta_value
+     */
+    public function processMetaData(
+        Base $feedbase,
+        string $meta_namespace,
+        string $meta_key,
+        SimpleXMLElement $meta_value
+    ): void {
+        if ($meta_namespace !== 'dc') {
+            return;
+        }
+
+        switch (true) {
+            case ($feedbase instanceof Feed):
+            case ($feedbase instanceof Item):
+                $this->processData($feedbase, $meta_key, $meta_value);
+                break;
+        }
     }
-    if ($feedbase instanceof Item)
-    {
-      switch ((string)$meta_namespace)
-      {
-        case 'dc':
-          $this->processData($feedbase, $meta_key, $meta_value);
-          break;
-      }
+
+    /**
+     * @param Base             $feedbase
+     * @param string           $meta_key
+     * @param SimpleXMLElement $meta_value
+     */
+    protected function processData(
+        Base $feedbase,
+        string $meta_key,
+        SimpleXMLElement $meta_value
+    ): void {
+        $metaKey = strtolower($meta_key);
+        switch ($metaKey) {
+            case 'title':
+                $this->$metaKey = (string)$meta_value;
+                break;
+
+            case 'creator':
+                $this->author = (string)$meta_value;
+                break;
+
+            case 'date':
+                $this->pubDate = (string)$meta_value;
+                break;
+        }
     }
-    unset($meta_namespace, $meta_key, $meta_value);
-  }
+
+    /**
+     * @param Base $feedbase
+     *
+     * @throws \Exception
+     */
+    public function applyMetaData(Base $feedbase): void
+    {
+        foreach (['title', 'pubDate', 'author'] as $field) {
+            if ($this->$field !== null && $feedbase->$field === null) {
+                switch ($field) {
+                    case 'title':
+                    case 'link':
+                    case 'author':
+                        $feedbase->$field = html_entity_decode(
+                            strip_tags(trim($this->$field))
+                        );
+                        break;
+
+                    case 'description':
+                        $feedbase->$field = html_entity_decode(
+                            trim($this->$field)
+                        );
+                        break;
+
+                    case 'pubdate':
+                        $feedbase->$field = new DateTime(
+                            $feedbase->$field,
+                            new DateTimeZone('UTC')
+                        );
+                        break;
+
+                    default:
+                        $feedbase->$field = $this->$field;
+                        break;
+                }
+            }
+        }
+    }
 }

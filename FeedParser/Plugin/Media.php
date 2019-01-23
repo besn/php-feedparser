@@ -7,97 +7,139 @@ use FeedParser\Item;
 use SimpleXMLElement;
 
 /**
- * MediaRSS Plugin
+ * RSS/Atom/RDF FeedParser - Media plugin
  *
+ * (c) Andreas Mery <besn@besn.at>
  *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  *
- * @source
+ * @package FeedParser\Plugin
  */
 class Media extends Plugin
 {
-  private $title = null;
-  private $thumbnail = null;
-  private $keywords = null;
-  private $player = null;
+    /**
+     * @var string $title
+     */
+    private $title;
 
-  private $media_attachments = array();
+    /**
+     * @var string $thumbnail
+     */
+    private $thumbnail;
 
-  private function processData(Base $feedbase, $meta_key, SimpleXMLElement $meta_value)
-  {
-    switch ((string)$meta_key)
-    {
-      case 'title':
-      case 'keywords':
-      case 'player':
-        $this->$meta_key = (string)$meta_value;
-        break;
-      case 'thumbnail':
-        $this->$meta_key = (string)$meta_value['url'];
-        break;
-      case 'content':
-        $media_content = array();
-        foreach ($meta_value->attributes() as $sub_meta_key => $sub_meta_value)
-        {
-          $media_content[$sub_meta_key] = (string)$sub_meta_value;
+    /**
+     * @var string $keywords
+     */
+    private $keywords;
+
+    /**
+     * @var string $player
+     */
+    private $player;
+
+    /**
+     * @var array $attachments
+     */
+    private $attachments = [];
+
+    /**
+     * @param Base             $feedbase
+     * @param string           $meta_namespace
+     * @param string           $meta_key
+     * @param SimpleXMLElement $meta_value
+     */
+    public function processMetaData(
+        Base $feedbase,
+        string $meta_namespace,
+        string $meta_key,
+        SimpleXMLElement $meta_value
+    ): void {
+        if ($meta_namespace !== 'media') {
+            return;
         }
-        if (isset($media_content['url']))
-        {
-          $this->media_attachments[sha1($media_content['url'])] = $media_content;
-        }
-        break;
-    }
-  }
 
-  public function applyMetaData(Base $feedbase)
-  {
-    if (isset($this->title) && !isset($feedbase->title))
-    {
-      $feedbase->media['title'] = $this->title;
-    }
-    if (isset($this->thumbnail))
-    {
-      $feedbase->media['thumbnail'] = $this->thumbnail;
-    }
-    if (isset($this->keywords))
-    {
-      $feedbase->media['keywords'] = $this->keywords;
-    }
-    if (isset($this->player))
-    {
-      $feedbase->media['player'] = $this->player;
-    }
-    if (count($this->media_attachments) > 0)
-    {
-      $feedbase->media['group'] = $this->media_attachments;
-    }
-  }
-
-  public function processMetaData(Base $feedbase, $meta_namespace, $meta_key, SimpleXMLElement $meta_value)
-  {
-    if ($feedbase instanceof Item)
-    {
-      switch ((string)$meta_namespace)
-      {
-        case 'media':
-          switch ((string)$meta_key)
-          {
-            case 'group':
-              if (count($meta_value->children($meta_namespace, true)) > 0)
-              {
-                foreach ($meta_value->children($meta_namespace, true) as $sub_meta_key => $sub_meta_value)
-                {
-                  $this->processMetaData($feedbase, $meta_namespace, $sub_meta_key, $sub_meta_value);
+        if ($feedbase instanceof Item) {
+            if ($meta_key === 'group') {
+                if (\count($meta_value->children($meta_namespace, true))
+                    > 0
+                ) {
+                    foreach (
+                        $meta_value->children($meta_namespace, true) as
+                        $sub_meta_key => $sub_meta_value
+                    ) {
+                        $this->processMetaData(
+                            $feedbase,
+                            $meta_namespace,
+                            $sub_meta_key,
+                            $sub_meta_value
+                        );
+                    }
                 }
-              }
-              break;
-
-            default:
-              $this->processData($feedbase, $meta_key, $meta_value);
-              break;
-          }
-          break;
-      }
+            } else {
+                $this->processData($feedbase, $meta_key, $meta_value);
+            }
+        }
     }
-    unset($meta_namespace, $meta_key, $meta_value);
-  }
+
+    /**
+     * @param Base             $feedbase
+     * @param string           $meta_key
+     * @param SimpleXMLElement $meta_value
+     */
+    protected function processData(
+        Base $feedbase,
+        string $meta_key,
+        SimpleXMLElement $meta_value
+    ): void {
+        switch ($meta_key) {
+            case 'title':
+            case 'keywords':
+            case 'player':
+                $this->$meta_key = (string)$meta_value;
+                break;
+            case 'thumbnail':
+                $this->$meta_key = (string)$meta_value['url'];
+                break;
+            case 'content':
+                $media_content = [];
+                foreach (
+                    $meta_value->attributes() as $sub_meta_key =>
+                    $sub_meta_value
+                ) {
+                    $media_content[$sub_meta_key] = (string)$sub_meta_value;
+                }
+                if (isset($media_content['url'])) {
+                    $this->attachments[sha1($media_content['url'])]
+                        = $media_content;
+                }
+                break;
+        }
+    }
+
+    /**
+     * @param Base $feedbase
+     */
+    public function applyMetaData(Base $feedbase): void
+    {
+        if ( ! ($feedbase instanceof Item)) {
+            return;
+        }
+
+        if ( ! empty($this->title)) {
+            $feedbase->media['title'] = $this->title;
+        }
+        if ( ! empty($this->thumbnail)) {
+            $feedbase->media['thumbnail'] = $this->thumbnail;
+        }
+        if ( ! empty($this->keywords)) {
+            $feedbase->media['keywords'] = $this->keywords;
+        }
+        if ( ! empty($this->player)) {
+            $feedbase->media['player'] = $this->player;
+        }
+        if (\count($this->attachments) > 0) {
+            $feedbase->media['group'] = $this->attachments;
+        }
+    }
 }
