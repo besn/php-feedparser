@@ -271,9 +271,9 @@ class Base
     }
 
     /**
-     * @return \DateTime
+     * @return null|\DateTime
      */
-    public function getPubDate(): \DateTime
+    public function getPubDate(): ?\DateTime
     {
         return $this->pubDate;
     }
@@ -287,9 +287,9 @@ class Base
     }
 
     /**
-     * @return \DateTime
+     * @return null|\DateTime
      */
-    public function getUpdated(): \DateTime
+    public function getUpdated(): ?\DateTime
     {
         return $this->updated;
     }
