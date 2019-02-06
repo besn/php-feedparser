@@ -342,7 +342,10 @@ class Core extends Plugin
                 'language',
             ] as $field
         ) {
-            if ($this->$field !== null && $feedbase->$field === null) {
+            if (
+                (isset($this->$field) && $this->$field !== null) &&
+                (!isset($feedbase->$field) || $feedbase->$field === null)
+            ) {
                 switch ($field) {
                     case 'title':
                     case 'link':
