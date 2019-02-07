@@ -343,8 +343,8 @@ class Core extends Plugin
             ] as $field
         ) {
             if (
-                (isset($this->$field) && $this->$field !== null) &&
-                (!isset($feedbase->$field) || $feedbase->$field === null)
+                (isset($this->$field) && $this->$field !== null)
+                && ( ! isset($feedbase->$field) || $feedbase->$field === null)
             ) {
                 switch ($field) {
                     case 'title':
@@ -359,8 +359,14 @@ class Core extends Plugin
                             break;
                         }
                         if (isset($this->$field['name'])) {
-                            $feedbase->$field = $this->$field['name'].' <'
-                                .$this->$field['email'].'>';
+                            $feedbase->$field = implode(
+                                ' ',
+                                [
+                                    $this->$field['name'],
+                                    isset($this->$field['email']) ? '<'
+                                        .$this->$field['email'].'>' : '',
+                                ]
+                            );
                             break;
                         }
 
